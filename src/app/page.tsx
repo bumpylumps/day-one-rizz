@@ -10,12 +10,12 @@ export default function Home() {
     return <div>Please Sign in!</div>
   };
 
+
+
   return (
     <>
       <div>Welcome!</div>
-      <UserProfile />
-      <OrganizationSwitcher />
-      <OrganizationProfile />
+      
     </>
   ) 
 };
