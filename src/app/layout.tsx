@@ -10,6 +10,7 @@ import {
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 
+import { neobrutalism } from '@clerk/themes'
 import { ptBR } from '@clerk/localizations';
 
 const geistSans = Geist({
@@ -46,18 +47,7 @@ export default function RootLayout({
     <ClerkProvider 
       localization={localization}
       appearance={{
-        layout: {
-          socialButtonsPlacement: 'bottom',
-          logoPlacement: 'none'
-        },
-        variables: {
-          colorPrimary: '#636de3',
-          colorBackground: '#825bea',
-          colorText: '#ea8242',
-          colorTextSecondary: '#ee4837',
-          colorInputBackground: '#f99e83'
-
-        }
+        baseTheme: neobrutalism
       }}  
     >
       <html lang="en">
