@@ -1,101 +1,131 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+import * as React from 'react';
+import Link from 'next/link';
+import { useSignIn } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+
+
+export default function Home (){
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [code, setCode] = React.useState('');
+  const [useBackupCode, setUseBackupCode] = React.useState(false);
+  const [displayTOTP, setDisplayTOTP] = React.useState(false)
+  const router = useRouter();
+
+  //added for TOTP
+  const handleFirstStage = (e: React.FormEvent) => {
+    e.preventDefault();
+    setDisplayTOTP(true)
+  };
+
+  //submission handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if(!isLoaded) return;
+
+    //start sign in process with captured deets
+    try {
+      await signIn.create({
+        identifier: email,
+        password,
+      })
+
+      //added for MFA/TOTP
+       // Attempt the TOTP or Backup Code verification
+       const signInAttempt = await signIn.attemptSecondFactor({
+        strategy: useBackupCode ? 'backup_code' : 'totp',
+        code: code,
+      });
+
+      //if all is good
+      if (signInAttempt.status === 'complete') {
+        await setActive({ session: signInAttempt.createdSessionId });
+        router.push('/success');
+      } else {
+       console.log(signInAttempt);
+      }
+    } catch(err: any) {
+        // If the status is not complete, check why. User may need to
+        // complete further steps.
+        console.error(JSON.stringify(err, null, 2))
+      }
+  } 
+
+  //added for MFA/TOTP
+  if (displayTOTP) {
+    return (
+      <div>
+        <h1>Verify your account</h1>
+        <form onSubmit={(e) => handleSubmit(e)}>
+          <div>
+            <label htmlFor="code">Code</label>
+            <input
+              onChange={(e) => setCode(e.target.value)}
+              id="code"
+              name="code"
+              type="text"
+              value={code}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          </div>
+          <div>
+            <label htmlFor="backupcode">This code is a backup code</label>
+            <input
+              onChange={() => setUseBackupCode((prev) => !prev)}
+              id="backupcode"
+              name="backupcode"
+              type="checkbox"
+              checked={useBackupCode}
+            />
+          </div>
+          <button type="submit">Verify</button>
+        </form>
+      </div>
+    )
+  }
+
+
+  return (
+    <>
+    <div>
+      <Link href="/sign-up">Sign Up</Link>
+      <h1>Or....</h1>
     </div>
+    <div>
+      <h1>Sign in!</h1>
+      <form onSubmit={(e) => handleFirstStage(e)}>
+        <div>
+          <label htmlFor="email">Enter that email</label>
+          <input 
+            onChange={(e) => setEmail(e.target.value)}
+            id="email"
+            name="email"
+            type="email"
+            value={email}
+          />
+        </div>
+        <div>
+          <label htmlFor="password">Enter that password playa</label>
+          <input
+            onChange={(e) => setPassword(e.target.value)}
+            id="password"
+            name="password"
+            type="password"
+            value={password}
+          />
+        </div>
+        <button type="submit">Sign in!</button>
+      </form>
+      <div>
+        <h2>Did you forget your password? <Link href='/forgorPassword'>Click here ya dingus!</Link></h2>
+      </div>
+    </div>
+    </>
   );
-}
+};
+
+
