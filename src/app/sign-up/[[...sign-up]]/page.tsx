@@ -7,7 +7,7 @@ import { useRouter } from  'next/navigation';
 export default function Page() {
     const { isLoaded, signUp, setActive } = useSignUp();
     const [verifying, setVerifying] = React.useState(false);
-    const [phone, setPhone] = React.useState('');
+    const [email, setEmail] = React.useState('');
     const [code, setCode] = React.useState('');
     const router = useRouter();
 
@@ -20,12 +20,12 @@ export default function Page() {
         try {
             //start sign up process w. phone num
             await signUp.create({ 
-                phoneNumber: phone, 
+                emailAddress: email, 
             })
 
-            //start verification - SMS message with
+            //start verification - email message with
             //one time code
-            await signUp.preparePhoneNumberVerification()
+            await signUp.prepareEmailAddressVerification()
 
             //set verifyng to true to display second form
             //and capture OTP code
@@ -44,7 +44,7 @@ export default function Page() {
         try {
             //use code provided by user and attempt 
             //verification
-            const signUpAttempt = await signUp.attemptPhoneNumberVerification({
+            const signUpAttempt = await signUp.attemptEmailAddressVerification({
                 code,
             })
 
@@ -68,7 +68,7 @@ export default function Page() {
     if(verifying){
         return (
             <>
-                <h1>Verify your phone number</h1>
+                <h1>Verify your Email address</h1>
                 <form onSubmit={handleVerification}>
                     <label htmlFor="code">Enter your verification code</label>
                     <input value={code} id="code" name="code" onChange={(e) => setCode(e.target.value)} />
@@ -81,13 +81,13 @@ export default function Page() {
     return (
         <>
             <form onSubmit={handleSubmit}>
-                <label htmlFor="phone">Enter phone number</label>
+                <label htmlFor="email">Enter email address</label>
                 <input
-                    value={phone}
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    onChange={(e) => setPhone(e.target.value)}
+                    value={email}
+                    id="email"
+                    name="email"
+                    type="string"
+                    onChange={(e) => setEmail(e.target.value)}
                 />
                 <button type="submit">Continue</button>
             </form>
