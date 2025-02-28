@@ -1,4 +1,4 @@
-import { OrganizationSwitcher, OrganizationProfile } from '@clerk/nextjs'
+import { OrganizationSwitcher } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server';
 
 export default async function Home() {

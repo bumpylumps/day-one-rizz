@@ -1,9 +1,9 @@
 'use client'
 
-import { ClerkProvider, RedirectToSignIn, SignedOut } from '@clerk/nextjs'
+import { ClerkProvider, SignedOut } from '@clerk/nextjs'
 import { AppProps } from 'next/app'
 
-function MyApp({ Component, pageProps }: AppProps) {
+function MyApp({ pageProps }: AppProps) {
   return (
     <ClerkProvider {...pageProps}>
       <SignedOut>
