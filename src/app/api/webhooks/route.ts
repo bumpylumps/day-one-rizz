@@ -53,6 +53,8 @@ export async function POST(req: Request) {
 	const { id } = evt.data;
 	const eventType = evt.type;
 
+	//instead of just logging the payload
+	//use details to add user to DB
 	console.log(`Webhook with and ID of ${id} and type of ${eventType}`)
 	console.log('Webhook body:', body)
 
