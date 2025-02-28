@@ -1,4 +1,4 @@
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
+import { ClerkProvider, SignedIn, UserButton } from '@clerk/nextjs'
 
 function Header() {
   return (
