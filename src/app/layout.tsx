@@ -7,9 +7,6 @@ function Header() {
       <SignedIn>
         <UserButton />
       </SignedIn>
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
     </header>
   )
 }
@@ -17,12 +14,12 @@ function Header() {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
       <ClerkProvider>
+      <body>
         <Header />
         {children}
-      </ClerkProvider>
       </body>
+      </ClerkProvider>
     </html>
   )
 }

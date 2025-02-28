@@ -1,21 +1,18 @@
-'use client';
-
-import { UserProfile, useUser, OrganizationSwitcher, OrganizationProfile } from '@clerk/nextjs'
+import { OrganizationSwitcher, OrganizationProfile } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server';
 
-export default function Home() {
-  const { user } = useUser();
+export default async function Home() {
+  const { userId } = await auth();
+  
 
-  if (!user) {
+  if (!userId) {
     return <div>Please Sign in!</div>
   };
 
   return (
     <>
       <div>Welcome!</div>
-      <UserProfile />
       <OrganizationSwitcher />
-      <OrganizationProfile />
     </>
   ) 
 };
