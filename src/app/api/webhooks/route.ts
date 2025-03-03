@@ -49,9 +49,9 @@ export async function POST(req: Request) {
 		  status: 400,
 		})
 	}
-	// @ts-ignore
+	//@ts-expect-error misreading file structure
 	const email:string = evt.data.email_addresses[0].email_address
-	//@ts-ignore
+	//@ts-expect-error misreading file structure
 	const name:string  = evt.data.first_name
 
 	//do something with payload
