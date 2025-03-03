@@ -1,60 +1,78 @@
+import { Webhook } from 'svix';
+import { headers } from 'next/headers';
+import { WebhookEvent } from '@clerk/nextjs/server';
+import { PrismaClient } from '@prisma/client';
 
 
-import { Webhook } from 'svix'
-
-
-// You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
-const webhookSecret: string = process.env.WEBHOOK_SECRET || "your-secret"
+const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
+	const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
 
-	if (!webhookSecret) {
-		throw new Error('Please add WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local')
+	if(!WEBHOOK_SECRET) {
+		throw new Error('Error: Please add WEBHOOK_SECRET from Clerk Dashboard to .env');
 	}
 
-	// Get the headers
-	const svix_id = req.headers.get("svix-id") ?? ""; 
-	const svix_timestamp = req.headers.get("svix-timestamp") ?? "";
-	const svix_signature = req.headers.get("svix-signature") ?? "";
+	// create new Svix instance with secret
+	const wh = new Webhook(WEBHOOK_SECRET)
 
 
+	//get headers
+	const headerPayload = req.headers
 
-	// If there are no headers, error out
-	if (!svix_id || !svix_timestamp || !svix_signature) {
-		return new Response('Error occured -- no svix headers', {
-			status: 400
-		})
+	const svix_id = headerPayload.get('svix-id')
+	const svix_timestamp = headerPayload.get('svix-timestamp')
+	const svix_signature = headerPayload.get('svix-signature')
+	
+	if(!svix_id || !svix_timestamp || !svix_signature) {
+		return new Response('Error: Missing Svix headers', {
+			status: 400,
+		  })
 	}
 
-	//get the body
-	const body = await req.text();
+	const payload = await req.json()
+	const body = JSON.stringify(payload)
 
-	const sivx = new Webhook(webhookSecret);
+	let evt: WebhookEvent;
 
-	let msg: any;
 
-	// Verify the payload with the headers
 	try {
-		msg = sivx.verify(body, {
-			"svix-id": svix_id,
-			"svix-timestamp": svix_timestamp,
-			"svix-signature": svix_signature,
-
-		});
+		evt = wh.verify(body, {
+			'svix-id': svix_id,
+			'svix-timestamp': svix_timestamp,
+			'svix-signature': svix_signature
+		}) as WebhookEvent 
 		
 	} catch (err) {
-		console.error('Error verifying webhook:', err);
-		return new Response('Error occured', {
-			status: 400
+		console.error('Error: Could not verify webhook:', err)
+		return new Response('Error: Verification error', {
+		  status: 400,
 		})
 	}
 
-	
-	//instead of just logging the payload
-	//use details to add user to DB
-	console.log(msg.data.email_addresses[0].email_address);
-	
+	const email:string = evt.data.email_addresses[0].email_address
+	const name:string  = evt.data.first_name
 
-	return new Response("OK", { status: 200 })
+	//do something with payload
+	//for guide, log payload to console
+	console.log(email)
+	console.log(name)
+
+	//add to prisma
+	try {
+		await prisma.user.create({
+			data: {
+				email: email,
+				name: name,
+			}
+		})
+	} catch (dbError) {
+		console.error('Error saving to database: ', dbError);
+		return new Response('Error: Could not save to database', {
+			status: 500
+		})
+	}
+  
+
+  	return new Response('Webhook received', { status: 200 })
 }
-
